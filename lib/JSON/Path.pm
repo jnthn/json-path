@@ -3,6 +3,23 @@ class JSON::Path {
 
     my enum ResultType < ValueResult PathResult >;
 
+    my grammar JSONPathGrammar {
+        token TOP {
+            ^
+            <.command>+
+            [ $ || <giveup> ]
+        }
+        
+        proto token command    { * }
+        token command:sym<$>   { <sym> }
+        token command:sym<.>   { <sym> <ident> }
+        token command:sym<[n]> { '[' ~ ']' $<n>=[\d+] }
+        
+        method giveup() {
+            die "Parse error near at pos " ~ self.pos;
+        }
+    }
+    
     multi method new($path) {
         self.bless(*, :$path);
     }
@@ -14,7 +31,23 @@ class JSON::Path {
     }
 
     method !get($object, ResultType $rt) {
-        die "NYI";
+        my $current = $object;
+        gather {
+            JSONPathGrammar.parse($!path, actions => class {
+                method command:sym<$>($/) {
+                    $current = $object;
+                }
+                
+                method command:sym<.>($/) {
+                    $current = $current{~$<ident>};
+                }
+                
+                method command:sym<[n]>($/) {
+                    $current = $current[+$<n>];
+                }
+            });
+            take $current;
+        }
     }
 
     method paths($object) {
