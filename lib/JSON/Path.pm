@@ -3,6 +3,8 @@ use JSON::Tiny;
 class JSON::Path {
     has $!path;
 
+    our $Safe = 1;
+
     my enum ResultType < ValueResult PathResult MapResult >;
 
     my grammar JSONPathGrammar {
