@@ -19,6 +19,7 @@ class JSON::Path {
         proto token command    { * }
         token command:sym<$>   { <sym> }
         token command:sym<.>   { <sym> <ident> }
+        token command:sym<[*]> { '[' ~ ']' '*' }
         token command:sym<[n]> {
             | '[' ~ ']' $<n>=[\d+]
             | "['" ~ "']" $<n>=[\d+]
@@ -84,6 +85,14 @@ class JSON::Path {
                     }
                 }
                 
+                method command:sym<[*]>($/) {
+                    make sub ($next, $current, @path) {
+                        for @($current).kv -> $idx, $object {
+                            $next($object, [@path, "[$idx]"]);
+                        }
+                    }
+                }
+
                 method command:sym<[n]>($/) {
                     my $idx = +$<n>;
                     make sub ($next, $current, @path) {
