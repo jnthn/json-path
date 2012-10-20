@@ -104,13 +104,13 @@ class JSON::Path {
                                 $next($o{$key}, [@path, "..$key"]);
                             }
                             for $o.keys -> $k {
-                                descend($o{$k}, $key);
+                                descend($o{$k});
                             }
                         }
 
                         multi descend(Positional $o) {
                             for $o.list -> $elem {
-                                descend($elem, $key);
+                                descend($elem);
                             }
                         }
 
