@@ -176,6 +176,20 @@ class JSON::Path {
     method map($object, &*JSONPATH_MAP) {
         self!get($object, MapResult).eager
     }
+
+    method set(Pair (:key($object), :value($substitute)), $limit = Inf) {
+        my $sub'd = 0;
+        self.map($object, -> $orig {
+            if $sub'd < $limit {
+                $sub'd++;
+                $substitute
+            }
+            else {
+                $orig
+            }
+        });
+        $sub'd
+    }
 }
 
 sub jpath($object, $expression) is export {
