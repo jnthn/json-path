@@ -6,8 +6,12 @@ class JSON::Path {
     my grammar JSONPathGrammar {
         token TOP {
             ^
-            <.command>+
+            <commandtree>
             [ $ || <giveup> ]
+        }
+        
+        token commandtree {
+            <command> <commandtree>?
         }
         
         proto token command    { * }
