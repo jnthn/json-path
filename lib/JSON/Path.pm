@@ -42,7 +42,11 @@ class JSON::Path {
         $!path
     }
 
-    method !get($object, ResultType $rt) {
+    method !get($object is copy, ResultType $rt) {
+        if $object ~~ Str { # assume it's a JSON representation
+            $object = from-json($object);
+        }
+
         my &collector = JSONPathGrammar.parse($!path,
             actions => class {
                 method TOP($/) {
@@ -95,11 +99,7 @@ class JSON::Path {
         self!get($object, PathResult);
     }
 
-    method values($object is copy) {
-        if $object ~~ Str { # assume it's a JSON representation
-            $object = from-json($object);
-        }
-
+    method values($object) {
         self!get($object, ValueResult);
     }
 
