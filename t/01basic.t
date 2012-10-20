@@ -1,8 +1,10 @@
-use Test::More tests => 10;
-BEGIN { use_ok('JSON::Path') };
+use Test;
+plan 10;
 
-use JSON;
-my $object = from_json(<<'JSON');
+use JSON::Path;
+use JSON::Tiny;
+
+my $object = from-json(q'
 {
 	"store": {
 		"book": [
@@ -39,35 +41,35 @@ my $object = from_json(<<'JSON');
 		}
 	}
 }
-JSON
+');
 
-my $path1 = JSON::Path->new('$.store.book[0].title');
+my $path1 = JSON::Path.new('$.store.book[0].title');
 is("$path1", '$.store.book[0].title', "overloaded stringification");
 
-my @results1 = $path1->values($object);
-is($results1[0], 'Sayings of the Century', "basic value result");
+my @results1 = $path1.values($object);
+is(@results1[0], 'Sayings of the Century', "basic value result");
 
-@results1 = $path1->paths($object);
-is($results1[0], "\$['store']['book']['0']['title']", "basic path result");
+@results1 = $path1.paths($object);
+is(@results1[0], "\$['store']['book']['0']['title']", "basic path result");
 
-my $path2 = JSON::Path->new('$..book[-1:]');
-my ($results2) = $path2->values($object);
+my $path2 = JSON::Path.new('$..book[-1:]');
+my ($results2) = $path2.values($object);
 
-is(ref $results2, 'HASH', "hashref value result");
-is($results2->{isbn}, "0-395-19395-8", "hashref seems to be correct");
+ok($results2 ~~ Hash, "hashref value result");
+is($results2<isbn>, "0-395-19395-8", "hashref seems to be correct");
 
 ok($JSON::Path::Safe, "safe by default");
 
-ok(!eval {
-	my $path3 = JSON::Path->new('$..book[?($_->{author} =~ /tolkien/i)]');
-	my $results3 = $path3->values($object);
-	1;
+nok(eval {
+    my $path3 = JSON::Path.new('$..book[?(.<author> ~~ m:i/tolkien/)]');
+    my $results3 = $path3.values($object);
+    1;
 }, "eval disabled by default");
 
-$JSON::Path::Safe = 0;
+$JSON::Path::Safe = False;
 
-my $path3 = JSON::Path->new('$..book[?($_->{author} =~ /tolkien/i)]');
-my ($results3) = $path3->values($object);
+my $path3 = JSON::Path.new('$..book[?(.<author> =~ m:i/tolkien/)]');
+my ($results3) = $path3.values($object);
 
-is(ref $results3, 'HASH', "dangerous hashref value result");
-is($results3->{isbn}, "0-395-19395-8", "dangerous hashref seems to be correct");
+ok($results3 ~~ Hash, "dangerous hashref value result");
+is($results3<isbn>, "0-395-19395-8", "dangerous hashref seems to be correct");
