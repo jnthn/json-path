@@ -66,10 +66,10 @@ class JSON::Path {
                         $<commandtree>
                             ?? $<commandtree>[0].ast
                             !! -> \result, @path { 
-                                take do given $rt {
-                                    when ValueResult { result }
-                                    when PathResult  { @path.join('') }
-                                    when MapResult   { result = &*JSONPATH_MAP(result) }
+                                given $rt {
+                                    when ValueResult { take result.item }
+                                    when PathResult  { take @path.join('') }
+                                    when MapResult   { take result = &*JSONPATH_MAP(result) }
                                 }
                             });
                 }
