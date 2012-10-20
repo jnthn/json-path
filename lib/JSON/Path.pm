@@ -1,3 +1,5 @@
+use JSON::Tiny;
+
 class JSON::Path {
     has $!path;
 
@@ -93,7 +95,11 @@ class JSON::Path {
         self!get($object, PathResult);
     }
 
-    method values($object) {
+    method values($object is copy) {
+        if $object ~~ Str { # assume it's a JSON representation
+            $object = from-json($object);
+        }
+
         self!get($object, ValueResult);
     }
 
