@@ -32,21 +32,28 @@ class JSON::Path {
 
     method !get($object, ResultType $rt) {
         my $current = $object;
+        my @path;
         gather {
             JSONPathGrammar.parse($!path, actions => class {
                 method command:sym<$>($/) {
                     $current = $object;
+                    @path.push('$');
                 }
                 
                 method command:sym<.>($/) {
                     $current = $current{~$<ident>};
+                    @path.push("['$<ident>']");
                 }
                 
                 method command:sym<[n]>($/) {
                     $current = $current[+$<n>];
+                    @path.push("['$<n>']");
                 }
             });
-            take $current;
+            take do given $rt {
+                when ValueResult { $current }
+                when PathResult  { @path.join('') }
+            }
         }
     }
 
