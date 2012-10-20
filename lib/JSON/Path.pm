@@ -3,7 +3,7 @@ use JSON::Tiny;
 class JSON::Path {
     has $!path;
 
-    our $Safe = 1;
+    our $Safe = True;
 
     my enum ResultType < ValueResult PathResult MapResult >;
 
