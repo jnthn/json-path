@@ -20,6 +20,7 @@ class JSON::Path {
         token command:sym<$>   { <sym> }
         token command:sym<.>   { <sym> <ident> }
         token command:sym<[*]> { '[' ~ ']' '*' }
+        token command:sym<..>  { <sym> <ident> }
         token command:sym<[n]> {
             | '[' ~ ']' $<n>=[\d+]
             | "['" ~ "']" $<n>=[\d+]
@@ -90,6 +91,30 @@ class JSON::Path {
                         for @($current).kv -> $idx, $object {
                             $next($object, [@path, "[$idx]"]);
                         }
+                    }
+                }
+
+                method command:sym<..>($/) {
+                    my $key = ~$<ident>;
+
+                    make sub ($next, $current, @path) {
+                        multi sub descend(Associative $o, $key) {
+                            if $o.exists($key) {
+                                $next($o{$key}, [@path, "..$key"]);
+                            }
+                        }
+
+                        multi sub descend(Positional $o, $key) {
+                            for $o.list -> $elem {
+                                descend($elem, $key);
+                            }
+                        }
+
+                        multi sub descent(Any $o, $key) {
+                            # just throw it away, not what we're looking for
+                        }
+
+                        descend($current, $key);
                     }
                 }
 
