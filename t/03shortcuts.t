@@ -54,4 +54,4 @@ is_deeply(
 	[ 'Sayings of the Century', 'Sword of Honour', 'Moby Dick', 'The Lord of the Rings' ],
 );
 
-done_testing();
+done();
