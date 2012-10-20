@@ -43,33 +43,56 @@ class JSON::Path {
     method !get($object, ResultType $rt) {
         my $current = $object;
         my @path;
-        gather {
-            JSONPathGrammar.parse($!path, actions => class {
+        my $runner = JSONPathGrammar.parse($!path,
+            actions => class {
+                method TOP($/) {
+                    make $<commandtree>.ast;
+                }
+                
+                method commandtree($/) {
+                    make $<command>.ast.assuming(
+                        $<commandtree>
+                            ?? $<commandtree>[0].ast
+                            !! -> $result { 
+                                take do given $rt {
+                                    when ValueResult { $result }
+                                    when PathResult  { @path.join('') }
+                                }
+                            });
+                }
+                
                 method command:sym<$>($/) {
-                    $current = $object;
-                    @path.push('$');
+                    make sub ($next, $current) {
+                        @path.push('$');
+                        $next($object);
+                    }
                 }
                 
                 method command:sym<.>($/) {
-                    $current = $current{~$<ident>};
-                    @path.push("['$<ident>']");
+                    my $key = ~$<ident>;
+                    make sub ($next, $current) {
+                        @path.push("['$key']");
+                        $next($current{$key});
+                    }
                 }
                 
                 method command:sym<[n]>($/) {
-                    $current = $current[+$<n>];
-                    @path.push("['$<n>']");
+                    my $idx = +$<n>;
+                    make sub ($next, $current) {
+                        @path.push("['$idx']");
+                        $next($current[$idx]);
+                    }
                 }
                 
                 method command:sym<['']>($/) {
-                    $current = $current{~$<key>};
-                    @path.push("['$<key>']");
+                    my $key = ~$<key>;
+                    make sub ($next, $current) {
+                        @path.push("['$key']");
+                        $next($current{$key});
+                    }
                 }
-            });
-            take do given $rt {
-                when ValueResult { $current }
-                when PathResult  { @path.join('') }
-            }
-        }
+            }).ast;
+        gather $runner($object);
     }
 
     method paths($object) {
