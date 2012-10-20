@@ -41,8 +41,6 @@ class JSON::Path {
     }
 
     method !get($object, ResultType $rt) {
-        my $current = $object;
-        my @path;
         my &collector = JSONPathGrammar.parse($!path,
             actions => class {
                 method TOP($/) {
@@ -53,7 +51,7 @@ class JSON::Path {
                     make $<command>.ast.assuming(
                         $<commandtree>
                             ?? $<commandtree>[0].ast
-                            !! -> $result { 
+                            !! -> $result, @path { 
                                 take do given $rt {
                                     when ValueResult { $result }
                                     when PathResult  { @path.join('') }
@@ -62,37 +60,33 @@ class JSON::Path {
                 }
                 
                 method command:sym<$>($/) {
-                    make sub ($next, $current) {
-                        @path.push('$');
-                        $next($object);
+                    make sub ($next, $current, @path) {
+                        $next($object, ['$']);
                     }
                 }
                 
                 method command:sym<.>($/) {
                     my $key = ~$<ident>;
-                    make sub ($next, $current) {
-                        @path.push("['$key']");
-                        $next($current{$key});
+                    make sub ($next, $current, @path) {
+                        $next($current{$key}, [@path, "['$key']"]);
                     }
                 }
                 
                 method command:sym<[n]>($/) {
                     my $idx = +$<n>;
-                    make sub ($next, $current) {
-                        @path.push("['$idx']");
-                        $next($current[$idx]);
+                    make sub ($next, $current, @path) {
+                        $next($current[$idx], [@path, "['$idx']"]);
                     }
                 }
                 
                 method command:sym<['']>($/) {
                     my $key = ~$<key>;
-                    make sub ($next, $current) {
-                        @path.push("['$key']");
-                        $next($current{$key});
+                    make sub ($next, $current, @path) {
+                        $next($current{$key}, [@path, "['$key']"]);
                     }
                 }
             }).ast;
-        gather &collector($object);
+        gather &collector($object, []);
     }
 
     method paths($object) {
