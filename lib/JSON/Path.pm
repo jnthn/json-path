@@ -3,7 +3,7 @@ use JSON::Tiny;
 class JSON::Path {
     has $!path;
 
-    my enum ResultType < ValueResult PathResult >;
+    my enum ResultType < ValueResult PathResult MapResult >;
 
     my grammar JSONPathGrammar {
         token TOP {
@@ -65,10 +65,11 @@ class JSON::Path {
                     make $<command>.ast.assuming(
                         $<commandtree>
                             ?? $<commandtree>[0].ast
-                            !! -> $result, @path { 
+                            !! -> \result, @path { 
                                 take do given $rt {
-                                    when ValueResult { $result }
+                                    when ValueResult { result }
                                     when PathResult  { @path.join('') }
+                                    when MapResult   { result = &*JSONPATH_MAP(result) }
                                 }
                             });
                 }
@@ -170,6 +171,10 @@ class JSON::Path {
 
     method value($object) is rw {
         self.values($object).[0]
+    }
+
+    method map($object, &*JSONPATH_MAP) {
+        self!get($object, MapResult).eager
     }
 }
 
