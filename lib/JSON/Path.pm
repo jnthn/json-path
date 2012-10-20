@@ -153,6 +153,6 @@ sub jpath1($object, $expression) is rw is export {
 	JSON::Path.new($expression).value($object);
 }
 
-sub jpath_map(&coderef, $object, $expression) {
+sub jpath_map(&coderef, $object, $expression) is export {
 	JSON::Path.new($expression).map($object, &coderef);
 }
