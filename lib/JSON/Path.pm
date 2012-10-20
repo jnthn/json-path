@@ -102,6 +102,9 @@ class JSON::Path {
                             if $o.exists($key) {
                                 $next($o{$key}, [@path, "..$key"]);
                             }
+                            for $o.keys -> $k {
+                                descend($o{$k}, $key);
+                            }
                         }
 
                         multi sub descend(Positional $o, $key) {
