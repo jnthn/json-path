@@ -13,7 +13,13 @@ class JSON::Path {
         proto token command    { * }
         token command:sym<$>   { <sym> }
         token command:sym<.>   { <sym> <ident> }
-        token command:sym<[n]> { '[' ~ ']' $<n>=[\d+] }
+        token command:sym<[n]> {
+            | '[' ~ ']' $<n>=[\d+]
+            | "['" ~ "']" $<n>=[\d+]
+        }
+        token command:sym<['']> {
+            "['" ~ "']" $<key>=[<-[']>+]
+        }
         
         method giveup() {
             die "Parse error near pos " ~ self.pos;
@@ -48,6 +54,11 @@ class JSON::Path {
                 method command:sym<[n]>($/) {
                     $current = $current[+$<n>];
                     @path.push("['$<n>']");
+                }
+                
+                method command:sym<['']>($/) {
+                    $current = $current{~$<key>};
+                    @path.push("['$<key>']");
                 }
             });
             take do given $rt {
