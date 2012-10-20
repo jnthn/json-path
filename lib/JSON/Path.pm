@@ -132,7 +132,7 @@ class JSON::Path {
     }
 
     method value($object) is rw {
-        self.values.[0]
+        self.values($object).[0]
     }
 }
 
