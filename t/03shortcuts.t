@@ -1,8 +1,9 @@
-use Test::More;
-use JSON::Path -all;
+use Test;
 
-use JSON;
-my $object = from_json(<<'JSON');
+use JSON::Path :ALL;
+use JSON::Tiny;
+
+my $object = from-json(q'
 {
 	"store": {
 		"book": [
@@ -39,13 +40,13 @@ my $object = from_json(<<'JSON');
 		}
 	}
 }
-JSON
+');
 
 my $path1 = '$.store.book[*].title';
 
 is_deeply(
-	[ jpath1($object, $path1) ],
-	[ 'Sayings of the Century' ],
+	jpath1($object, $path1),
+	'Sayings of the Century',
 );
 
 is_deeply(
