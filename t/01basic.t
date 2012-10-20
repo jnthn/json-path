@@ -1,5 +1,5 @@
 use Test;
-plan 10;
+plan 9;
 
 use JSON::Path;
 use JSON::Tiny;
