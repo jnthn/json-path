@@ -18,6 +18,7 @@ following that link there, but here's a summary:
     [4:5]       index array range
     [:5]        index from the beginning
     [-3:]       index to the end
+    [*]         index all array elements
     [?(expr)]   filter on (Perl 6) expression
     ..key       search all descendants for hash key
 
