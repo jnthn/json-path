@@ -1,6 +1,8 @@
 class JSON::Path {
     has $!path;
     
+    my enum ResultType < ValueResult PathResult >;
+    
     multi method new($path) {
         self.bless(*, :$path);
     }
@@ -9,6 +11,22 @@ class JSON::Path {
     
     multi method Str(JSON::Path:D:) {
         $!path
+    }
+    
+    method !get($object, ResultType $rt) {
+        die "NYI";
+    }
+    
+    method paths($object) {
+        self!get($object, PathResult);
+    }
+    
+    method values($object) {
+        self!get($object, ValueResult);
+    }
+    
+    method value($object) is rw {
+        self.values.[0]
     }
 }
 
