@@ -164,6 +164,9 @@ class JSON::Path {
                 }
 
                 method command:sym<[?()]>($/) {
+                    die "Non-safe evaluation"
+                        if $Safe;
+
                     my &condition = eval '-> $_ {' ~ ~$<code> ~ '}';
                     make sub ($next, $current, @path) {
                         for @($current).grep(&condition) {
