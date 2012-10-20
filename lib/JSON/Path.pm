@@ -16,7 +16,7 @@ class JSON::Path {
         token command:sym<[n]> { '[' ~ ']' $<n>=[\d+] }
         
         method giveup() {
-            die "Parse error near at pos " ~ self.pos;
+            die "Parse error near pos " ~ self.pos;
         }
     }
     
