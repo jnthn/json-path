@@ -118,7 +118,7 @@ class JSON::Path {
                             # just throw it away, not what we're looking for
                         }
 
-                        descend($current, $key);
+                        descend($current);
                     }
                 }
 
