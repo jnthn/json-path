@@ -68,7 +68,7 @@ dies_ok({
 
 $JSON::Path::Safe = False;
 
-my $path3 = JSON::Path.new('$..book[?(.<author> =~ m:i/tolkien/)]');
+my $path3 = JSON::Path.new('$..book[?(.<author> ~~ m:i/tolkien/)]');
 my ($results3) = $path3.values($object);
 
 ok($results3 ~~ Hash, "dangerous hashref value result");
