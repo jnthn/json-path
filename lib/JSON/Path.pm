@@ -29,6 +29,9 @@ class JSON::Path {
         token command:sym<[n1,n2]> {
             '[' ~ ']' [ [ $<ns>=[\d+] ]+ % ',' ]
         }
+        token command:sym<[n1:n2]> {
+            '[' ~ ']' [ $<n1>=[\d+] ':' $<n2>=[\d+] ]
+        }
         
         method giveup() {
             die "Parse error near pos " ~ self.pos;
@@ -98,6 +101,16 @@ class JSON::Path {
                 method command:sym<[n1,n2]>($/) {
                     my @idxs = $<ns>>>.Int;
                     make sub ($next, $current, @path) {
+                        for @idxs {
+                            $next($current[$_], [@path, "[$_]"]);
+                        }
+                    }
+                }
+                
+                method command:sym<[n1:n2]>($/) {
+                    my ($from, $to) = (+$<n1>, +$<n2>);
+                    make sub ($next, $current, @path) {
+                        my @idxs = (+$from max 0) .. ($to min ($current.?end // 0));
                         for @idxs {
                             $next($current[$_], [@path, "[$_]"]);
                         }
