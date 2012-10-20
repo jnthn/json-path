@@ -98,7 +98,7 @@ class JSON::Path {
                     my $key = ~$<ident>;
 
                     make sub ($next, $current, @path) {
-                        multi sub descend(Associative $o, $key) {
+                        multi descend(Associative $o, $key) {
                             if $o.exists($key) {
                                 $next($o{$key}, [@path, "..$key"]);
                             }
@@ -107,13 +107,13 @@ class JSON::Path {
                             }
                         }
 
-                        multi sub descend(Positional $o, $key) {
+                        multi descend(Positional $o, $key) {
                             for $o.list -> $elem {
                                 descend($elem, $key);
                             }
                         }
 
-                        multi sub descent(Any $o, $key) {
+                        multi descend(Any $o, $key) {
                             # just throw it away, not what we're looking for
                         }
 
