@@ -30,7 +30,7 @@ class JSON::Path {
             '[' ~ ']' [ [ $<ns>=[\d+] ]+ % ',' ]
         }
         token command:sym<[n1:n2]> {
-            '[' ~ ']' [ $<n1>=[\d+] ':' $<n2>=[\d+] ]
+            '[' ~ ']' [ $<n1>=['-'?\d+] ':' [$<n2>=['-'?\d+]]? ]
         }
         
         method giveup() {
@@ -108,9 +108,12 @@ class JSON::Path {
                 }
                 
                 method command:sym<[n1:n2]>($/) {
-                    my ($from, $to) = (+$<n1>, +$<n2>);
+                    my ($from, $to) = (+$<n1>, $<n2> ?? +$<n2>[0] !! Inf);
                     make sub ($next, $current, @path) {
-                        my @idxs = (+$from max 0) .. ($to min ($current.?end // 0));
+                        my @idxs = 
+                            (($from < 0 ?? +$current + $from !! $from) max 0)
+                            ..
+                            (($to < 0 ?? +$current + $to !! $to) min ($current.?end // 0));
                         for @idxs {
                             $next($current[$_], [@path, "[$_]"]);
                         }
