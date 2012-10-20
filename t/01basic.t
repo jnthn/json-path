@@ -4,7 +4,7 @@ plan 10;
 use JSON::Path;
 use JSON::Tiny;
 
-my $object = from-json(trim q'
+my $object = from-json(q'
 {
 	"store": {
 		"book": [
