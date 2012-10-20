@@ -43,7 +43,7 @@ class JSON::Path {
     method !get($object, ResultType $rt) {
         my $current = $object;
         my @path;
-        my $runner = JSONPathGrammar.parse($!path,
+        my &collector = JSONPathGrammar.parse($!path,
             actions => class {
                 method TOP($/) {
                     make $<commandtree>.ast;
@@ -92,7 +92,7 @@ class JSON::Path {
                     }
                 }
             }).ast;
-        gather $runner($object);
+        gather &collector($object);
     }
 
     method paths($object) {
