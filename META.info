@@ -3,5 +3,5 @@
     "version" : "*",
     "description" : "Implementation of the JSONPath data structure query language.",
     "depends" : [ "JSON::Tiny" ],
-    "source-url" : "git@github.com:jnthn/json-path.git"
+    "source-url" : "git://github.com/jnthn/json-path.git"
 }
