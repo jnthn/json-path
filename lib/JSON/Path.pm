@@ -69,7 +69,7 @@ class JSON::Path {
                 method commandtree($/) {
                     make $<command>.ast.assuming(
                         $<commandtree>
-                            ?? $<commandtree>[0].ast
+                            ?? $<commandtree>.ast
                             !! -> \result, @path { 
                                 given $rt {
                                     when ValueResult { take result.item }
@@ -151,7 +151,7 @@ class JSON::Path {
                 }
                 
                 method command:sym<[n1:n2]>($/) {
-                    my ($from, $to) = (+$<n1>, $<n2> ?? +$<n2>[0] !! Inf);
+                    my ($from, $to) = (+$<n1>, $<n2> ?? +$<n2> !! Inf);
                     make sub ($next, $current, @path) {
                         my @idxs = 
                             (($from < 0 ?? +$current + $from !! $from) max 0)
