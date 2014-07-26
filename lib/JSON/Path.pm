@@ -46,7 +46,7 @@ class JSON::Path {
     }
     
     multi method new($path) {
-        self.bless(*, :$path);
+        self.bless(:$path);
     }
 
     submethod BUILD(:$!path as Str) { }
@@ -105,7 +105,7 @@ class JSON::Path {
 
                     make sub ($next, $current, @path) {
                         multi descend(Associative $o) {
-                            if $o.exists($key) {
+                            if $o{$key}:exists {
                                 $next($o{$key}, [@path, "..$key"]);
                             }
                             for $o.keys -> $k {
@@ -167,7 +167,7 @@ class JSON::Path {
                     die "Non-safe evaluation"
                         if $Safe;
 
-                    my &condition = eval '-> $_ {' ~ ~$<code> ~ '}';
+                    my &condition = EVAL '-> $_ { my $/; ' ~ ~$<code> ~ ' }';
                     make sub ($next, $current, @path) {
                         for @($current).grep(&condition) {
                             $next($_, @path);
