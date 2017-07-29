@@ -49,7 +49,7 @@ class JSON::Path {
         self.bless(:$path);
     }
 
-    submethod BUILD(Str :$!path) { }
+    submethod BUILD(Str() :$!path) { }
 
     multi method Str(JSON::Path:D:) {
         $!path
