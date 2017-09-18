@@ -1,5 +1,7 @@
 use JSON::Tiny;
 
+use MONKEY-SEE-NO-EVAL;
+
 class JSON::Path {
     has $!path;
 
@@ -49,7 +51,7 @@ class JSON::Path {
         self.bless(:$path);
     }
 
-    submethod BUILD(:$!path as Str) { }
+    submethod BUILD(Str:D :$!path) { }
 
     multi method Str(JSON::Path:D:) {
         $!path
