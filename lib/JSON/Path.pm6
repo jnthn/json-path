@@ -19,9 +19,9 @@ class JSON::Path {
         
         proto token command    { * }
         token command:sym<$>   { <sym> }
-        token command:sym<.>   { [<sym> | ^] <ident> }
-        token command:sym<[*]> { '[' ~ ']' '*' }
-        token command:sym<..>  { <sym> <ident> }
+        token command:sym<.>   { <sym>? <ident> }
+        token command:sym<[*]> { <sym> }
+        token command:sym<..>  { <sym> }
         token command:sym<[n]> {
             | '[' ~ ']' $<n>=[\d+]
             | "['" ~ "']" $<n>=[\d+]
@@ -80,39 +80,45 @@ class JSON::Path {
         method command:sym<.>($/) {
             my $key = ~$<ident>;
             make sub ($next, $current, @path, $result-type) {
-                $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                if $current ~~ Associative and $current{$key}:exists {
+                    $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                }
             }
         }
 
         method command:sym<[*]>($/) {
             make sub ($next, $current, @path, $result-type) {
-                for @($current).kv -> $idx, $object {
-                    $next($object, [flat @path, "[$idx]"], $result-type);
+                if $current ~~ Positional {
+                    for $current.kv -> $idx, $object {
+                        $next($object, [flat @path, "[$idx]"], $result-type);
+                    }
+                }
+                elsif $next ~~ Associative {
+                    for $current.kv -> $key, $object {
+                        $next($object, [flat @path, self!enc-key($key)], $result-type);
+                    }
                 }
             }
         }
 
         method command:sym<..>($/) {
-            my $key = ~$<ident>;
-
             make sub ($next, $current, @path, $result-type) {
                 multi descend(Associative $o) {
-                    if $o{$key}:exists {
-                        $next($o{$key}, [flat @path, "..$key"], $result-type);
-                    }
-                    for $o.keys -> $k {
-                        descend($o{$k});
+                    for $o.kv -> $key, $value {
+                        $next($value, [flat @path, self!enc-key($key)], $result-type);
+                        descend($value);
                     }
                 }
 
                 multi descend(Positional $o) {
-                    for $o.list -> $elem {
-                        descend($elem);
+                    for $o.list.kv -> $idx, $value {
+                        $next($value, [flat @path, ".[$idx]"], $result-type);
+                        descend($value);
                     }
                 }
 
                 multi descend(Any $o) {
-                # just throw it away, not what we're looking for
+                    # Terminal, so can't index further into it
                 }
 
                 descend($current);
@@ -122,22 +128,30 @@ class JSON::Path {
         method command:sym<[n]>($/) {
             my $idx = +$<n>;
             make sub ($next, $current, @path, $result-type) {
-                $next($current[$idx], [flat @path, "['$idx']"], $result-type);
+                if $current ~~ Positional and $current[$idx]:exists {
+                    $next($current[$idx], [flat @path, "['$idx']"], $result-type);
+                }
             }
         }
 
         method command:sym<['']>($/) {
             my $key = ~$<key>;
             make sub ($next, $current, @path, $result-type) {
-                $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                if $current ~~ Associative and $current{$key}:exists {
+                    $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                }
             }
         }
 
         method command:sym<[n1,n2]>($/) {
             my @idxs = $<ns>>>.Int;
             make sub ($next, $current, @path, $result-type) {
-                for @idxs {
-                    $next($current[$_], [flat @path, "[$_]"], $result-type);
+                if $current ~~ Positional {
+                    for @idxs {
+                        if $current[$_]:exists {
+                            $next($current[$_], [flat @path, "[$_]"], $result-type);
+                        }
+                    }
                 }
             }
         }
@@ -145,12 +159,14 @@ class JSON::Path {
         method command:sym<[n1:n2]>($/) {
             my ($from, $to) = (+$<n1>, $<n2> ?? +$<n2> !! Inf);
             make sub ($next, $current, @path, $result-type) {
-                my @idxs =
-                        (($from < 0 ?? +$current + $from !! $from) max 0)
-                        ..
-                        (($to < 0 ?? +$current + $to !! $to) min ($current.?end // 0));
-                for @idxs {
-                    $next($current[$_], [flat @path, "[$_]"], $result-type);
+                if $current ~~ Positional {
+                    my @idxs =
+                            (($from < 0 ?? +$current + $from !! $from) max 0)
+                            ..
+                            (($to < 0 ?? +$current + $to !! $to) min ($current.?end // 0));
+                    for @idxs {
+                        $next($current[$_], [flat @path, "[$_]"], $result-type);
+                    }
                 }
             }
         }
@@ -167,6 +183,10 @@ class JSON::Path {
                     $next($_, @path, $result-type);
                 }
             }
+        }
+
+        method !enc-key($key) {
+            $key ~~ /^<.ident>$/ ?? ".$key" !! "['$key']";
         }
     }
 

@@ -1,8 +1,6 @@
-use Test;
-plan 15;
-
 use JSON::Path;
 use JSON::Fast;
+use Test;
 
 my $object = from-json(q'
 {
@@ -102,3 +100,15 @@ is-deeply $path6.values($object),
             "The Lord of the Rings"
         ),
         'Expression not rooted with $ and starting with property name works';
+
+my $path7 = JSON::Path.new(q[..['title']]);
+is-deeply $path7.values($object),
+        (
+            "Sayings of the Century",
+            "Sword of Honour",
+            "Moby Dick",
+            "The Lord of the Rings"
+        ),
+        "The form ..['index'] works";
+
+done-testing;
