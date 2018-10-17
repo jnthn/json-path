@@ -1,4 +1,4 @@
-use JSON::Tiny;
+use JSON::Fast;
 
 class JSON::Path {
     has $!path;
