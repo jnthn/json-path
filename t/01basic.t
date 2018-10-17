@@ -1,5 +1,5 @@
 use Test;
-plan 11;
+plan 15;
 
 use JSON::Path;
 use JSON::Fast;
@@ -45,15 +45,21 @@ my $object = from-json(q'
 
 my $path1 = JSON::Path.new('$.store.book[0].title');
 is("$path1", '$.store.book[0].title', "overloaded stringification");
-my @results1 = $path1.values($object);
-is(@results1[0], 'Sayings of the Century', "basic value result");
-@results1 = $path1.paths($object);
-is(@results1[0], "\$['store']['book']['0']['title']", "basic path result");
+given $path1.values($object) {
+    is .elems, 1, 'Found one value result';
+    is(.[0], 'Sayings of the Century', "Correct value result");
+}
+given $path1.paths($object) {
+    is .elems, 1, 'Found one path';
+    is(.[0], "\$['store']['book']['0']['title']", "Correct path result");
+}
 
 my $path2 = JSON::Path.new('$..book[-1:]');
-my ($results2) = $path2.values($object);
-ok($results2 ~~ Hash, "hashref value result");
-is($results2<isbn>, "0-395-19395-8", "hashref seems to be correct");
+given $path2.values($object) {
+    is .elems, 1, '.. query got expected number of results';
+    isa-ok(.[0], Hash, "Got expected hash result");
+    is(.[0]<isbn>, "0-395-19395-8", "Got the correct hash");
+}
 
 dies-ok({
     my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]');
@@ -61,9 +67,11 @@ dies-ok({
 }, "eval disabled by default");
 
 my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]', :allow-eval);
-my ($results3) = $path3.values($object);
-ok($results3 ~~ Hash, "dangerous hashref value result");
-is($results3<isbn>, "0-395-19395-8", "dangerous hashref seems to be correct");
+given $path3.values($object) {
+    is .elems, 1, 'Query with evaluated Perl 6 code worked';
+    isa-ok(.[0], Hash, "Query gave a hash result");
+    is(.[0]<isbn>, "0-395-19395-8", "Query found correct hash entry");
+}
 
 my $path4 = JSON::Path.new('.store.book[*].title');
 is-deeply $path4.values($object),
