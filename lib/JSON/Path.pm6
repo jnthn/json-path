@@ -9,18 +9,17 @@ class JSON::Path {
 
     grammar Parser {
         token TOP {
-            ^
             <commandtree>
-            [ $ || <giveup> ]
         }
         
         token commandtree {
-            <command> <commandtree>?
+            [ <command> || <.giveup> ]
+            [ $ || <commandtree> ]
         }
         
         proto token command    { * }
         token command:sym<$>   { <sym> }
-        token command:sym<.>   { <sym> <ident> }
+        token command:sym<.>   { [<sym> | ^] <ident> }
         token command:sym<[*]> { '[' ~ ']' '*' }
         token command:sym<..>  { <sym> <ident> }
         token command:sym<[n]> {
@@ -41,7 +40,7 @@ class JSON::Path {
         }
         
         method giveup() {
-            die "Parse error near pos " ~ self.pos;
+            die "JSON path parse error at position " ~ self.pos;
         }
     }
 

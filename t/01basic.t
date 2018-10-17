@@ -1,5 +1,5 @@
 use Test;
-plan 9;
+plan 11;
 
 use JSON::Path;
 use JSON::Fast;
@@ -45,16 +45,13 @@ my $object = from-json(q'
 
 my $path1 = JSON::Path.new('$.store.book[0].title');
 is("$path1", '$.store.book[0].title', "overloaded stringification");
-
 my @results1 = $path1.values($object);
 is(@results1[0], 'Sayings of the Century', "basic value result");
-
 @results1 = $path1.paths($object);
 is(@results1[0], "\$['store']['book']['0']['title']", "basic path result");
 
 my $path2 = JSON::Path.new('$..book[-1:]');
 my ($results2) = $path2.values($object);
-
 ok($results2 ~~ Hash, "hashref value result");
 is($results2<isbn>, "0-395-19395-8", "hashref seems to be correct");
 
@@ -65,6 +62,35 @@ dies-ok({
 
 my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]', :allow-eval);
 my ($results3) = $path3.values($object);
-
 ok($results3 ~~ Hash, "dangerous hashref value result");
 is($results3<isbn>, "0-395-19395-8", "dangerous hashref seems to be correct");
+
+my $path4 = JSON::Path.new('.store.book[*].title');
+is-deeply $path4.values($object),
+        (
+            "Sayings of the Century",
+            "Sword of Honour",
+            "Moby Dick",
+            "The Lord of the Rings"
+        ),
+        'Expression not rooted with $ and starting with . works';
+
+my $path5 = JSON::Path.new('..title');
+is-deeply $path5.values($object),
+        (
+            "Sayings of the Century",
+            "Sword of Honour",
+            "Moby Dick",
+            "The Lord of the Rings"
+        ),
+        'Expression not rooted with $ and starting with .. works';
+
+my $path6 = JSON::Path.new('store.book[*].title');
+is-deeply $path6.values($object),
+        (
+            "Sayings of the Century",
+            "Sword of Honour",
+            "Moby Dick",
+            "The Lord of the Rings"
+        ),
+        'Expression not rooted with $ and starting with property name works';
