@@ -57,8 +57,8 @@ class JSON::Path {
         }
 
         method commandtree($/) {
-            make $<command>.ast.assuming(
-                    $<commandtree>
+            my $command = $<command>.ast;
+            my $next = $<commandtree>
                     ?? $<commandtree>.ast
                     !! -> \result, @path, $result-type {
                         given $result-type {
@@ -66,7 +66,10 @@ class JSON::Path {
                             when PathResult  { take @path.join('') }
                             when MapResult   { take result = &*JSON-PATH-MAP(result) }
                         }
-                    });
+                    }
+            make -> $current, @path, $result-type {
+                $command($next, $current, @path, $result-type);
+            }
         }
 
         method command:sym<$>($/) {
