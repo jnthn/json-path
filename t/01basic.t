@@ -58,17 +58,12 @@ my ($results2) = $path2.values($object);
 ok($results2 ~~ Hash, "hashref value result");
 is($results2<isbn>, "0-395-19395-8", "hashref seems to be correct");
 
-ok($JSON::Path::Safe, "safe by default");
-
 dies-ok({
     my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]');
     my $results3 = $path3.values($object);
-    1;
 }, "eval disabled by default");
 
-$JSON::Path::Safe = False;
-
-my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]');
+my $path3 = JSON::Path.new('$..book[?(.<author> ~~ rx:i/tolkien/)]', :allow-eval);
 my ($results3) = $path3.values($object);
 
 ok($results3 ~~ Hash, "dangerous hashref value result");

@@ -3,8 +3,7 @@ use JSON::Fast;
 class JSON::Path {
     has $!path;
     has &!collector;
-
-    our $Safe = True;
+    has Bool $.allow-eval = False;;
 
     my enum ResultType < ValueResult PathResult MapResult >;
 
@@ -47,6 +46,8 @@ class JSON::Path {
     }
 
     my class BuildClosureTree {
+        has Bool $.allow-eval is required;
+
         method TOP($/) {
             my $evaluator = $<commandtree>.ast;
             make -> $current, $path, $result-type {
@@ -63,7 +64,7 @@ class JSON::Path {
                         given $result-type {
                             when ValueResult { take result.item }
                             when PathResult  { take @path.join('') }
-                            when MapResult   { take result = &*JSONPATH_MAP(result) }
+                            when MapResult   { take result = &*JSON-PATH-MAP(result) }
                         }
                     });
         }
@@ -153,8 +154,8 @@ class JSON::Path {
         }
 
         method command:sym<[?()]>($/) {
-            die "Non-safe evaluation"
-                    if $Safe;
+            die "Evaluation of embedded Perl 6 code not allowed (construct with :allow-eval)"
+                unless $!allow-eval;
 
             use MONKEY-SEE-NO-EVAL;
             my &condition = EVAL '-> $_ { my $/; ' ~ ~$<code> ~ ' }';
@@ -167,12 +168,13 @@ class JSON::Path {
         }
     }
 
-    multi method new($path) {
-        self.bless(:$path);
+    multi method new($path, *%options) {
+        self.bless(:$path, |%options);
     }
 
-    submethod BUILD(Str() :$!path) {
-        &!collector = Parser.parse($!path, actions => BuildClosureTree).ast;
+    submethod TWEAK(Str() :$!path) {
+        my $actions = BuildClosureTree.new(:$!allow-eval);
+        &!collector = Parser.parse($!path, :$actions).ast;
     }
 
     multi method Str(JSON::Path:D:) {
@@ -198,7 +200,7 @@ class JSON::Path {
         self.values($object).head
     }
 
-    method map($object, &*JSONPATH_MAP) {
+    method map($object, &*JSON-PATH-MAP) {
         self!get($object, MapResult).eager
     }
 
