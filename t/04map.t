@@ -1,5 +1,5 @@
 use JSON::Path;
-use JSON::Tiny;
+use JSON::Fast;
 use Test;
 
 my $object = from-json(q'

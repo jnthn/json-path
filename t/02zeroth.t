@@ -2,7 +2,7 @@ use Test;
 plan 5;
 
 use JSON::Path;
-use JSON::Tiny;
+use JSON::Fast;
 
 my $object = {
     'foo' => [

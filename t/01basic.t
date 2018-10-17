@@ -2,7 +2,7 @@ use Test;
 plan 9;
 
 use JSON::Path;
-use JSON::Tiny;
+use JSON::Fast;
 
 my $object = from-json(q'
 {

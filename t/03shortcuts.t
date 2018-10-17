@@ -1,7 +1,7 @@
 use Test;
 
 use JSON::Path :ALL;
-use JSON::Tiny;
+use JSON::Fast;
 
 my $object = from-json(q'
 {
