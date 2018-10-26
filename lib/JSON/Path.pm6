@@ -5,7 +5,7 @@ class JSON::Path {
     has &!collector;
     has Bool $.allow-eval = False;;
 
-    my enum ResultType < ValueResult PathResult MapResult >;
+    my enum ResultType < ValueResult PathResult PathAndValueResult MapResult >;
 
     grammar Parser {
         token TOP {
@@ -63,6 +63,10 @@ class JSON::Path {
                         given $result-type {
                             when ValueResult { take result.item }
                             when PathResult  { take @path.join('') }
+                            when PathAndValueResult {
+                                take @path.join('');
+                                take result.item;
+                            }
                             when MapResult   { take result = &*JSON-PATH-MAP(result) }
                         }
                     }
@@ -213,11 +217,15 @@ class JSON::Path {
     }
 
     method paths($object) {
-        self!get($object, PathResult);
+        self!get($object, PathResult)
     }
 
     method values($object) {
-        self!get($object, ValueResult);
+        self!get($object, ValueResult)
+    }
+
+    method paths-and-values($object) {
+        self!get($object, PathAndValueResult)
     }
 
     method value($object) is rw {

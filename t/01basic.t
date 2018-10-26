@@ -111,4 +111,18 @@ is-deeply $path7.values($object),
         ),
         "The form ..['index'] works";
 
+my $path8 = JSON::Path.new(q[..['title']]);
+is-deeply $path8.paths-and-values($object),
+        (
+            "\$.store.book[0].title",
+            "Sayings of the Century",
+            "\$.store.book[1].title",
+            "Sword of Honour",
+            "\$.store.book[2].title",
+            "Moby Dick",
+            "\$.store.book[3].title",
+            "The Lord of the Rings"
+        ),
+        "The form ..['index'] works";
+
 done-testing;
