@@ -1,4 +1,4 @@
-# JSON::Path
+# JSON::Path [![Build Status](https://travis-ci.org/jnthn/json-path.svg?branch=master)](https://travis-ci.org/jnthn/json-path)
 
 The [JSONPath query language](https://goessner.net/articles/JsonPath/) was
 designed for indexing into JSON documents. It plays the same role as XPath
