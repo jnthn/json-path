@@ -1,13 +1,46 @@
-JSON::Path gives you the power to deeply index data structures (containing
-arrays and hashes) with path expressions.
+# JSON::Path
 
-    # index into { kitchen => { drawers => [ { fork => '!' } ] } }
-    my $path = JSON::Path.new('$.kitchen.drawers[0].fork');
+The [JSONPath query language](https://goessner.net/articles/JsonPath/) was
+designed for indexing into JSON documents. It plays the same role as XPath
+does for XML documents.
 
-[JsonPath](http://goessner.net/articles/JsonPath/) is like XPath but adapted
-for JSON. It simplifies and adapts the path expressions a bit, to better fit
-the data structures stored by JSON. You can read more about the syntax by
-following that link there, but here's a summary:
+This module implements `JSON::Path`. However, it is not restricted to working
+on JSON input. In fact, it will happily work over any data structure made up of
+arrays and hashes.
+
+## Synopsis
+
+    # Example data.
+    my $data = {
+        kitchen => {
+            drawers => [
+                { knife => '🔪' },
+                { glass => '🍷' },
+                { knife => '🗡️' },
+            ]
+        }
+    };
+
+    # A query
+    my $jp = JSON::Path.new('$.kitchen.drawers[*].knife');
+
+    # The first result
+    dd $jp.value($data);    # "🔪"
+
+    # All results.
+    dd $jp.values($data);   # ("🔪", "🗡️").Seq
+
+    # All paths where the results were found.
+    dd $jp.paths($data);    # ("\$.kitchen.drawers[0].knife",
+                            #  "\$.kitchen.drawers[2].knife").Seq
+
+    # Interleaved paths and values.
+    dd $jp.paths-and-values($data); # ("\$.kitchen.drawers[0].knife", "🔪",
+                                    #  "\$.kitchen.drawers[2].knife", "🗡️").Seq
+
+## Query Syntax Summary
+
+The following syntax is supported:
 
     $           root node
     .key        index hash key
@@ -22,5 +55,5 @@ following that link there, but here's a summary:
     [?(expr)]   filter on (Perl 6) expression
     ..key       search all descendants for hash key
 
-The module is functionally a port of CPAN's JSON::Path, even though the
-internals look quite different.
+A query that is not rooted from `$` or specified using `..` will be evaluated
+from the document root (that is, same as an explicit `$` at the start).
