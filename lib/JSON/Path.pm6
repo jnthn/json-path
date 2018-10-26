@@ -81,7 +81,7 @@ class JSON::Path {
             my $key = ~$<ident>;
             make sub ($next, $current, @path, $result-type) {
                 if $current ~~ Associative and $current{$key}:exists {
-                    $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                    $next($current{$key}, [flat @path, self!enc-key($key)], $result-type);
                 }
             }
         }
@@ -103,25 +103,27 @@ class JSON::Path {
 
         method command:sym<..>($/) {
             make sub ($next, $current, @path, $result-type) {
-                multi descend(Associative $o) {
+                multi descend(Associative $o, @path) {
                     for $o.kv -> $key, $value {
-                        $next($value, [flat @path, self!enc-key($key)], $result-type);
-                        descend($value);
+                        my @next-path = flat @path, self!enc-key($key);
+                        $next($value, @next-path, $result-type);
+                        descend($value, @next-path);
                     }
                 }
 
-                multi descend(Positional $o) {
+                multi descend(Positional $o, @path) {
                     for $o.list.kv -> $idx, $value {
-                        $next($value, [flat @path, ".[$idx]"], $result-type);
-                        descend($value);
+                        my @next-path = flat @path, "[$idx]";
+                        $next($value, @next-path, $result-type);
+                        descend($value, @next-path);
                     }
                 }
 
-                multi descend(Any $o) {
+                multi descend(Any $o, @path) {
                     # Terminal, so can't index further into it
                 }
 
-                descend($current);
+                descend($current, @path);
             }
         }
 
@@ -129,7 +131,7 @@ class JSON::Path {
             my $idx = +$<n>;
             make sub ($next, $current, @path, $result-type) {
                 if $current ~~ Positional and $current[$idx]:exists {
-                    $next($current[$idx], [flat @path, "['$idx']"], $result-type);
+                    $next($current[$idx], [flat @path, "[$idx]"], $result-type);
                 }
             }
         }
@@ -138,7 +140,7 @@ class JSON::Path {
             my $key = ~$<key>;
             make sub ($next, $current, @path, $result-type) {
                 if $current ~~ Associative and $current{$key}:exists {
-                    $next($current{$key}, [flat @path, "['$key']"], $result-type);
+                    $next($current{$key}, [flat @path, self!enc-key($key)], $result-type);
                 }
             }
         }
@@ -207,7 +209,7 @@ class JSON::Path {
         my $target = $object ~~ Str
                 ?? from-json($object)
                 !! $object;
-        gather &!collector($target, [], $result-type);
+        gather &!collector($target, ['$'], $result-type);
     }
 
     method paths($object) {

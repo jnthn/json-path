@@ -49,7 +49,7 @@ given $path1.values($object) {
 }
 given $path1.paths($object) {
     is .elems, 1, 'Found one path';
-    is(.[0], "\$['store']['book']['0']['title']", "Correct path result");
+    is(.[0], "\$.store.book[0].title", "Correct path result");
 }
 
 my $path2 = JSON::Path.new('$..book[-1:]');
