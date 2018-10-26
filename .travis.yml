@@ -1,10 +1,12 @@
-branches:
-  except:
-    - gh-pages
+os:
+  - linux
+  - osx
 language: perl6
-sudo: false
 perl6:
   - latest
 install:
-  - rakudobrew build-panda
-  - panda installdeps .
+  - rakudobrew build zef
+  - zef --/test --depsonly install .
+script:
+  - zef test .
+sudo: false
