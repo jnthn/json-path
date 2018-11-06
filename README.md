@@ -44,14 +44,14 @@ The following syntax is supported:
 
     $           root node
     .key        index hash key
-    .*          index all hash keys
     ['key']     index hash key
     [2]         index array element
     [0,1]       index array slice
     [4:5]       index array range
     [:5]        index from the beginning
     [-3:]       index to the end
-    [*]         index all array elements
+    .*          index all elements
+    [*]         index all elements
     [?(expr)]   filter on (Perl 6) expression
     ..key       search all descendants for hash key
 
