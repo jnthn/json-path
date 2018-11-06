@@ -125,4 +125,14 @@ is-deeply $path8.paths-and-values($object),
         ),
         "The form ..['index'] works";
 
+my $path9 = JSON::Path.new('store.book.*.title');
+is-deeply $path9.values($object),
+        (
+            "Sayings of the Century",
+            "Sword of Honour",
+            "Moby Dick",
+            "The Lord of the Rings"
+        ),
+        'The .* syntax works';
+
 done-testing;

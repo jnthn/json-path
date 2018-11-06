@@ -20,7 +20,7 @@ class JSON::Path {
         proto token command    { * }
         token command:sym<$>   { <sym> }
         token command:sym<.>   { <sym>? <ident> }
-        token command:sym<[*]> { <sym> }
+        token command:sym<[*]> { <sym> | '.*' | [^ || <?after '.'>] '*' }
         token command:sym<..>  { <sym> }
         token command:sym<[n]> {
             | '[' ~ ']' $<n>=[\d+]
