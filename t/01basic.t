@@ -135,4 +135,12 @@ is-deeply $path9.values($object),
         ),
         'The .* syntax works';
 
+my $path10 = JSON::Path.new('$.store.*');
+is-deeply $path10.paths($object),
+        (
+            '$.store.book',
+            '$.store.bicycle'
+        ),
+        'Expression terminating with .* returns expected paths';
+
 done-testing;

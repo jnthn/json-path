@@ -97,7 +97,7 @@ class JSON::Path {
                         $next($object, [flat @path, "[$idx]"], $result-type);
                     }
                 }
-                elsif $next ~~ Associative {
+                elsif $current ~~ Associative {
                     for $current.kv -> $key, $object {
                         $next($object, [flat @path, self!enc-key($key)], $result-type);
                     }
