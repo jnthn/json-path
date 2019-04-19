@@ -158,4 +158,13 @@ is-deeply $path10.paths($object).sort.list,
     is-deeply $jp.values($json), ('item2',), 'Integer in key index not mis-compiled';
 }
 
+{
+    my $path = JSON::Path.new('$..book[?(.<author>.contains("Tolkien"))]', :allow-eval);
+    given $path.values($object) {
+        is .elems, 1, 'Query with evaluated Perl 6 code with nested parens worked';
+        isa-ok(.[0], Hash, "Query gave a hash result");
+        is(.[0]<isbn>, "0-395-19395-8", "Query found correct hash entry");
+    }
+}
+
 done-testing;

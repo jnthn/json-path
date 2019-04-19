@@ -35,7 +35,14 @@ class JSON::Path {
             '[' ~ ']' [ $<n1>=['-'?\d+] ':' [$<n2>=['-'?\d+]]? ]
         }
         token command:sym<[?()]> {
-            '[?(' ~ ')]' $<code>=[<-[)]>+]
+            '[?(' ~ ')]' <code>
+        }
+
+        token code {
+            [
+            | <-[()]>
+            | '(' <.code>? ')'
+            ]+
         }
         
         method giveup() {
